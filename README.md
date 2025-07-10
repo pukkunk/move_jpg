@@ -28,7 +28,7 @@ Ini setting file (move_jpg.ini)
 Initial settings
 ```cmd
 [move_jpg]
-picture_ext = .jpg,.jpeg,.png,.tif
+picture_ext = .jpg,.jpeg,.tif
 movie_ext = .mp4,.mov
 raw_ext = .orf
 mtime_ext = .mts

@@ -19,7 +19,7 @@ try:
     import ini_cfg_parser as ini
 except ImportError as e:
     msg = f"The 'ini_cfg_parser' module is required but not installed.\n"
-    msg += f"You can install it with: pip install ini_cfg_parser-x.x.x-py3-none-any.whl\n"
+    msg += f"You can install it with: pip install ini_cfg_parser\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
@@ -28,7 +28,7 @@ try:
     from PIL.ExifTags import TAGS   # type: ignore
 except ImportError as e:
     msg = f"The 'PIL' module is required but not installed.\n"
-    msg += f"You can install it with: pip install Pillow --only-binary :all:\n"
+    msg += f"You can install it with: pip install Pillow\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
@@ -36,7 +36,7 @@ try:
     import piexif   # type: ignore
 except ImportError as e:
     msg = f"The 'piexif' module is required but not installed.\n"
-    msg += f"You can install it with: pip install piexif --only-binary :all:\n"
+    msg += f"You can install it with: pip install piexif\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
@@ -44,7 +44,7 @@ try:
     import ffmpeg# type: ignore
 except ImportError as e:
     msg = f"The 'ffmpeg' module is required but not installed.\n"
-    msg += f"You can install it with: pip install ffmpeg-python --only-binary :all:\n"
+    msg += f"You can install it with: pip install ffmpeg-python\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
@@ -52,7 +52,7 @@ try:
     from packaging import version
 except ImportError as e:
     msg = f"The 'packaging' module is required but not installed.\n"
-    msg += f"You can install it with: pip install packaging --only-binary :all:\n"
+    msg += f"You can install it with: pip install packaging\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
@@ -63,7 +63,7 @@ class ExtDict(TypedDict):
     mtime_ext: List[str]
     movie_ext: List[str]
 
-__version__ = f"0.1.0, python={platform.python_version()} {platform.architecture()[0]}"
+__version__ = f"0.1.1, python={platform.python_version()} {platform.architecture()[0]}"
 __copyright__    = 'pukkun'
 __author__       = 'pukkun'
 
@@ -91,7 +91,7 @@ def main() -> None :
     str_tar_folder = args.tar_folder
     encoding = args.encoding
 
-    opt:dict[str, Any] = {}
+    opt:Dict[str, Any] = {}
     opt['picture_ext'] = lst_picture_ext
     opt['tar_folder'] = str_tar_folder
 
@@ -377,9 +377,9 @@ def download_and_extract_ffprobe(zip_url: str) -> bool:
 ## @param[in]   filename        : input file [type str]
 ## @param[in]   url             : URL info [type str]
 ## @retval      exif_data       : exif info (key,value) [type List[Tuple[str, Any]]]
-def movie_get_date(filename: str, url: str) -> dict[str, Optional[str]] :
+def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
     flag = False    # Initializing variables
-    inf: dict[str, Optional[str]] = {'year':None, 'month':None, 'day':None , 'hour':None, 'min':None, 'sec':None} #変数の初期化
+    inf: Dict[str, Optional[str]] = {'year':None, 'month':None, 'day':None , 'hour':None, 'min':None, 'sec':None} #変数の初期化
 
     if(is_ffprobe() == False):
         # If a proxy is set in the environment variables, the proxy information will be used for downloading.
@@ -482,8 +482,8 @@ def get_dateinf(str_s) -> Tuple[Optional[str], Optional[str], Optional[str]]:
 # @param[in]    filename        : file name [type str]
 # @param[in]    tag             : tag value [type int]
 # @param[in]    erropt          : error option [type int]
-# @retval       inf             : date info [type dict]
-def get_date_info_fm_raw(filename: str, tag: int, erropt=0)->dict:
+# @retval       inf             : date info [type Dict]
+def get_date_info_fm_raw(filename: str, tag: int, erropt=0)->Dict:
     exif_dict = piexif.load(filename)
     #pprint(exif_dict)
     inf: Dict[str,  Optional[str]] = {}
@@ -544,7 +544,7 @@ def get_ini_dict_val(section: str) -> ini.IniDict:
     '''
     return {
         section: {
-            'picture_ext': {'type': List[str], 'inf': ['.jpg', '.jpeg' , '.png', '.tif']},
+            'picture_ext': {'type': List[str], 'inf': ['.jpg', '.jpeg' ,'.tif']},
             'movie_ext': {'type': List[str], 'inf': ['.mp4', '.mov', '.mts']},
             'raw_ext': {'type': List[str], 'inf': ['.orf']},
             'mtime_ext': {'type': List[str], 'inf': ['.mts']},
@@ -567,29 +567,6 @@ def get_inifile() -> str:
         ini_file = f"{SCR_PATH}.ini"
     return ini_file
 
-## @fn         check_version()
-#  @brief      Checks the version information of an object and raises an exception if the version does not meet the minimum specified.
-#  @param[in]  obj             : The object (typically a class or module) that has a version attribute. [type: object]
-#  @param[in]  attr            : The attribute name that stores version information (default is "__version__"). [type: str]
-#  @param[in]  package_name    : The package name to use in the error message. If None, it is inferred from the object. [type: Optional[str]]
-#  @param[in]  min_version     : The minimum required version in string format (e.g., "1.2.3"). [type: str]
-#  @retval     None            : Raises ImportError or AttributeError if the version is invalid or missing.
-def check_version(obj: object, attr: str = "__version__", package_name:Optional[str] = None, min_version: str = "0.0.0") -> None :
-    from packaging import version
-    current_version = getattr(obj, attr, None)
-
-    if current_version is None:
-        raise AttributeError(f"{obj} has no attribute '{attr}'")
-
-    if package_name is None:
-        package_name = getattr(obj, '__name__', obj.__class__.__name__)
-
-    if version.parse(current_version) < version.parse(min_version):
-        raise ImportError(
-            f"{package_name} version {current_version} is too old. "
-            f"Requires version {min_version} or newer."
-        )
-
 ##
 # @brief        After displaying the string msg, execute sys.exit(1).
 # @param[in]    filename        : target file name [type str]
@@ -599,5 +576,4 @@ def die_print(msg: str) -> None:
     sys.exit(NG_VAL)
 
 if __name__ == "__main__":
-    check_version(ini.IniParser, min_version="0.0.3")
     main()
