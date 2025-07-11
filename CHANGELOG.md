@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
+## [v0.1.2] - 2025-07-11
+### Changed
+- `move_jpg.py`: 
+  - Modified to support HCIE format image files.
 
 ## [v0.1.1] - 2025-07-10
 ### Changed

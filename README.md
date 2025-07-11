@@ -11,9 +11,10 @@ The following information is obtained from the configuration file and processed:
 - (2) Video file extension
 - (3) Raw file extension
 - (4) Mtime information processing file extension
-- (5) ffmepg download URL
-- (6) Date format
-- (7) Target folder
+- (5) HCIE format image file.
+- (6) ffmepg download URL
+- (7) Date format
+- (8) Target folder
 
 ## Usage
 
@@ -32,6 +33,7 @@ picture_ext = .jpg,.jpeg,.tif
 movie_ext = .mp4,.mov
 raw_ext = .orf
 mtime_ext = .mts
+heic_ext = .heic
 url_ffmpeg = https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
 date_format = %Y_%m_%d
 tar_folder = .
@@ -41,6 +43,7 @@ tar_folder = .
 - movie_ext = Movie file extension
 - raw_ext = Raw file extension
 - mtime_ext = Mtime information processing file extension
+- heic_ext = The file extension for HCIE format images.
 - url_ffmpeg = ffmepg download URL
 　If the program file "ffprobe.exe" does not exist, obtain it from the URL.
 - date_format = Date format

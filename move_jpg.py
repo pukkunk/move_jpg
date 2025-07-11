@@ -8,13 +8,37 @@ import shutil
 import sys
 import re
 import datetime
-from pathlib import Path
+import pathlib
 import urllib.request
 import zipfile
 import platform
 from typing import List, Dict, Tuple, Optional, Any, TypedDict
 OK_VAL = 0
 NG_VAL = 1
+#try:
+#    import py7zr #7z用
+#except ImportError as e:
+#    msg = f"The 'py7zr' module is required but not installed.\n"
+#    msg += f"You can install it with: pip install py7zr\n"
+#    msg += f"Details: {e}"
+#    print(msg)
+#    raise SystemExit(NG_VAL)
+try:
+    from pillow_heif import register_heif_opener
+except ImportError as e:
+    msg = f"The 'pillow_heif' module is required but not installed.\n"
+    msg += f"You can install it with: pip install pillow_heif\n"
+    msg += f"Details: {e}"
+    print(msg)
+    raise SystemExit(NG_VAL)
+try:
+    import piexif
+except ImportError as e:
+    msg = f"The 'piexif' module is required but not installed.\n"
+    msg += f"You can install it with: pip install piexif\n"
+    msg += f"Details: {e}"
+    print(msg)
+    raise SystemExit(NG_VAL)
 try:
     import ini_cfg_parser as ini
 except ImportError as e:
@@ -24,8 +48,8 @@ except ImportError as e:
     print(msg)
     raise SystemExit(NG_VAL)
 try:
-    from PIL import Image   # type: ignore
-    from PIL.ExifTags import TAGS   # type: ignore
+    from PIL import Image	# type: ignore
+    from PIL.ExifTags import TAGS	# type: ignore
 except ImportError as e:
     msg = f"The 'PIL' module is required but not installed.\n"
     msg += f"You can install it with: pip install Pillow\n"
@@ -33,7 +57,7 @@ except ImportError as e:
     print(msg)
     raise SystemExit(NG_VAL)
 try:
-    import piexif   # type: ignore
+    import piexif	# type: ignore
 except ImportError as e:
     msg = f"The 'piexif' module is required but not installed.\n"
     msg += f"You can install it with: pip install piexif\n"
@@ -49,28 +73,32 @@ except ImportError as e:
     print(msg)
     raise SystemExit(NG_VAL)
 try:
-    from packaging import version
+    import numpy as np
 except ImportError as e:
-    msg = f"The 'packaging' module is required but not installed.\n"
-    msg += f"You can install it with: pip install packaging\n"
+    msg = f"The 'numpy' module is required but not installed.\n"
+    msg += f"You can install it with: pip install numpy --only-binary :all:\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
 
+# Register HEIC support
+register_heif_opener()
+
 class ExtDict(TypedDict):
     picture_ext: List[str]
     raw_ext: List[str]
+    heic_ext: List[str]
     mtime_ext: List[str]
     movie_ext: List[str]
 
-__version__ = f"0.1.1, python={platform.python_version()} {platform.architecture()[0]}"
-__copyright__    = 'pukkun'
-__author__       = 'pukkun'
+__version__ = f"0.1.2, python={platform.python_version()} {platform.architecture()[0]}"
+__copyright__    = 'pukkunk'
+__author__       = 'pukkunk'
 
 SCR_PATH = os.path.abspath(sys.argv[0])
 SCR_FOLDER = os.path.dirname(SCR_PATH)
 
-def main() -> None :
+def main(args=None) -> None:
     h_word = "Refer to the date information of the image files and move the files to the date folder."
     parser = argparse.ArgumentParser(
         prog=os.path.basename(SCR_PATH),
@@ -95,11 +123,10 @@ def main() -> None :
     opt['picture_ext'] = lst_picture_ext
     opt['tar_folder'] = str_tar_folder
 
-    # Get the ini file name.
+    # Create setting file name information
     ini_file = get_inifile()
     section = os.path.splitext(os.path.basename(SCR_PATH))[0]
 
-    # Set the desired default value with the function get_ini_dict_val()
     default_ini = get_ini_dict_val(section)
     # Check whether the dict variable default_ini for default values ​​is of the expected type.
     if(ini.IniParser.is_valid_ini_dict(default_ini) == False):
@@ -115,7 +142,7 @@ def main() -> None :
 
     # When there is no information for the target key of the variable opt (when the key does not exist or the value of opt[key] is None), the information obtained from the ini file is supplemented.
     for key in default_ini[section].keys():
-        # when the key does not exist or the value of opt[key] is None
+        # (1) or (2). (1) When the target key of the variable opt does not exist (2) When the value of opt[key] is None.
         if (key not in opt) or (opt[key] is None):
             opt[key] = ini_parser.get(section, key)
 
@@ -125,6 +152,7 @@ def main() -> None :
     list_ext.extend(opt['picture_ext'])
     list_ext.extend(opt['movie_ext'])
     list_ext.extend(opt['raw_ext'])
+    list_ext.extend(opt['heic_ext'])
     list_ext.extend(opt['mtime_ext'])
     url_ffmpeg = opt['url_ffmpeg']
     date_format = opt['date_format']
@@ -148,6 +176,7 @@ def main() -> None :
     dict_tar_ext: ExtDict = {
         'picture_ext': opt['picture_ext'],
         'raw_ext': opt['raw_ext'],
+        'heic_ext': opt['heic_ext'],
         'mtime_ext': opt['mtime_ext'],
         'movie_ext': opt['movie_ext'],
     }
@@ -163,6 +192,7 @@ def main() -> None :
 def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_format: str):
     picture_ext = dict_tar_ext['picture_ext']
     raw_ext = dict_tar_ext['raw_ext']
+    heic_ext = dict_tar_ext['heic_ext']
     mtime_ext = dict_tar_ext['mtime_ext']
     movie_ext = dict_tar_ext['movie_ext']
 
@@ -195,6 +225,15 @@ def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_
                 year = inf['year']
                 month = inf['month']
                 day = inf['day']
+        elif(ext.lower() in heic_ext):
+            #print(f"HEIC process. file={file},ext={ext}")
+            # Get date information
+            inf = file_get_heic(file)
+            if all(key in inf for key in required_keys):
+                year = str(inf['year']) if inf['year'] is not None else None
+                month = str(inf['month']) if inf['month'] is not None else None
+                day = str(inf['day']) if inf['day'] is not None else None
+            #print(f"year={year},month={month},day={day}")
         elif(ext.lower() in mtime_ext):
             # Get date information.
             inf = file_get_mtime(file)
@@ -250,32 +289,85 @@ def is_valid_date_format(fmt: str) -> bool:
 #  @brief       Get the "ctime" of the target file. The "ctime" is the time when the file's index node (inode) information was last changed.
 #  @param[in]   filename        : file file [type str]
 #  @retval      exif_data       : file timestamp [type Dict[str, str]]
-def file_get_ctime(filename: str) -> Dict[str, str] :
-    ctime = os.path.getctime(filename)
-    fts = datetime.datetime.fromtimestamp(ctime)
-    inf: Dict[str, str] = {}
-    inf['year']  = fts.strftime('%Y')
-    inf['month'] = fts.strftime('%m')
-    inf['day']   = fts.strftime('%d')
-    inf['hour']  = fts.strftime('%H')
-    inf['min']   = fts.strftime('%M')
-    inf['sec']   = fts.strftime('%S')
+def file_get_ctime(filename: str) -> Dict[str, Optional[str]]:
+    inf: Dict[str, Optional[str]] = {}
+
+    try:
+        ctime = os.path.getctime(filename)
+        fts = datetime.datetime.fromtimestamp(ctime)
+        inf['year']  = fts.strftime('%Y')
+        inf['month'] = fts.strftime('%m')
+        inf['day']   = fts.strftime('%d')
+        inf['hour']  = fts.strftime('%H')
+        inf['min']   = fts.strftime('%M')
+        inf['sec']   = fts.strftime('%S')
+    except Exception:
+        inf['year']  = None
+        inf['month'] = None
+        inf['day']   = None
+        inf['hour']  = None
+        inf['min']   = None
+        inf['sec']   = None
+    return inf
+
+def file_get_heic(filename: str) -> Dict[str, Optional[int]]:
+    inf: Dict[str, Optional[int]] = {}
+
+    try:
+        # To support 2-byte character codes, read the image in binary format and pass it to Image.open.
+        with open(filename, 'rb') as f:
+            img = Image.open(f)
+            img.load()
+
+        # get EXIF
+        exif_bytes = img.info.get("exif")
+        if not exif_bytes:
+            return {k: None for k in ['year', 'month', 'day', 'hour', 'min', 'sec']}
+
+        exif_dict = piexif.load(exif_bytes)
+        date_str = exif_dict['Exif'].get(piexif.ExifIFD.DateTimeOriginal)
+
+        if date_str:
+            try:
+                dt = datetime.datetime.strptime(date_str.decode('utf-8'), "%Y:%m:%d %H:%M:%S")
+                inf['year']  = dt.year
+                inf['month'] = dt.month
+                inf['day']   = dt.day
+                inf['hour']  = dt.hour
+                inf['min']   = dt.minute
+                inf['sec']   = dt.second
+            except Exception:
+                return {k: None for k in ['year', 'month', 'day', 'hour', 'min', 'sec']}
+        else:
+            return {k: None for k in ['year', 'month', 'day', 'hour', 'min', 'sec']}
+    except Exception:
+        return {k: None for k in ['year', 'month', 'day', 'hour', 'min', 'sec']}
+
     return inf
 
 ## @fn          file_get_mtime()
 #  @brief       Get the "mtime" of the target file. "mtime" = Get the date and time when the file contents were last changed.
 #  @param[in]   filename        : file file [type str]
 #  @retval      exif_data       : exif info (key,value) [type list]
-def file_get_mtime(filename: str) -> Dict[str, str] :
-    mtime = os.path.getmtime(filename)
-    fts = datetime.datetime.fromtimestamp(mtime)
-    inf = {}
-    inf['year']  = fts.strftime('%Y')
-    inf['month'] = fts.strftime('%m')
-    inf['day']   = fts.strftime('%d')
-    inf['hour']  = fts.strftime('%H')
-    inf['min']   = fts.strftime('%M')
-    inf['sec']   = fts.strftime('%S')
+def file_get_mtime(filename: str) -> Dict[str, Optional[str]]:
+    inf: Dict[str, Optional[str]] = {}
+
+    try:
+        mtime = os.path.getmtime(filename)
+        fts = datetime.datetime.fromtimestamp(mtime)
+        inf['year']  = fts.strftime('%Y')
+        inf['month'] = fts.strftime('%m')
+        inf['day']   = fts.strftime('%d')
+        inf['hour']  = fts.strftime('%H')
+        inf['min']   = fts.strftime('%M')
+        inf['sec']   = fts.strftime('%S')
+    except Exception:
+        inf['year']  = None
+        inf['month'] = None
+        inf['day']   = None
+        inf['hour']  = None
+        inf['min']   = None
+        inf['sec']   = None
     return inf
 
 def add_tardir_envpath(dirname: str) -> None :
@@ -286,14 +378,25 @@ def add_tardir_envpath(dirname: str) -> None :
     if SCR_FOLDER not in current_path:
         os.environ["PATH"] = dirname + os.pathsep + current_path
 
+## @fn          is_ffmpeg()
+#  @brief       Check that ffmpeg is on your path.
+#  @param[in]   None            : None
+#  @retval      bool            : result value [type bool]
+def is_ffmpeg() -> bool:
+    # Check that ffmpeg is on your path.
+    tool_path = shutil.which("ffmpeg")
+    if not tool_path:
+        return False
+    else:
+        return True
 ## @fn          is_ffprobe()
 #  @brief       Check that ffprobe is on your path.
 #  @param[in]   None            : None
 #  @retval      bool            : result value [type bool]
 def is_ffprobe() -> bool:
     # Check that ffprobe is on your path.
-    ffprobe_path = shutil.which("ffprobe")
-    if not ffprobe_path:
+    tool_path = shutil.which("ffprobe")
+    if not tool_path:
         return False
     else:
         return True
@@ -306,70 +409,90 @@ def progress_hook(count, block_size, total_size):
     print(f"\rDownloading {bar} {percent}% complete", end='')
 
 def download_and_extract_ffprobe(zip_url: str) -> bool:
-    user_input = input("ffprobe.exe not found. Would you like to download it? [y/N]: ").strip().lower()
+    enb_ffprobe = not is_ffprobe()
+    enb_ffmpeg = False
+
+    if not (enb_ffprobe or enb_ffmpeg):
+        print("download is disabled.")
+        return True
+
+    targets = []
+    if enb_ffprobe:
+        targets.append("ffprobe.exe")
+    if enb_ffmpeg:
+        targets.append("ffmpeg.exe")
+
+    target_list_str = " and ".join(targets)
+    user_input = input(f"{target_list_str} not found. Would you like to download it? [y/N]: ").strip().lower()
     if user_input != "y":
         print("Canceled download.")
         return False
 
-    print("Start downloading program file...")
+    suffix = pathlib.Path(zip_url).suffix.lower()
+    if suffix not in ['.zip', '.7z']:
+        print(f"Unsupported archive type: {suffix}")
+        return False
 
-    zip_path = "ffmpeg.zip"
-    extracted_folder_base = os.path.splitext(zip_path)[0]  # Remove the ".zip" string and get ffmpeg.
+    zip_path = f"ffmpeg{suffix}"
 
     proxy_dict = {}
     if os.environ.get("HTTP_PROXY"):
         proxy_dict["http"] = os.environ["HTTP_PROXY"]
     if os.environ.get("HTTPS_PROXY"):
         proxy_dict["https"] = os.environ["HTTPS_PROXY"]
-
     if proxy_dict:
-        proxy_handler = urllib.request.ProxyHandler(proxy_dict)
-        opener = urllib.request.build_opener(proxy_handler)
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxy_dict))
         urllib.request.install_opener(opener)
 
     try:
         urllib.request.urlretrieve(zip_url, zip_path, reporthook=progress_hook)
         print("\nDownload complete:", zip_path)
     except Exception as e:
-        print("Failed to download ffprobe:", e)
+        print(f"Failed to download {target_list_str}:", e)
         return False
 
+    # Extract
     try:
-        print("Extraction of the zip file has started.")
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            # Get the root folder name in the ZIP（example：ffmpeg-7.1.1-essentials_build）
-            all_names = zip_ref.namelist()
-            root_dir = all_names[0].split('/')[0] if all_names else None
+        print("Extraction of the archive has started.")
+        root_dir = None
+        all_names = []
 
-            ffprobe_member = [f for f in all_names if f.endswith("ffprobe.exe")]
-            if ffprobe_member:
-                print("Extracting ffprobe.exe...")
-                zip_ref.extract(ffprobe_member[0], ".")
-                extracted_path = os.path.join(".", ffprobe_member[0])
-                shutil.move(extracted_path, "ffprobe.exe")
-                print("Extraction complete: ffprobe.exe")
+        if suffix == '.zip':
+            with zipfile.ZipFile(zip_path, 'r') as archive:
+                all_names = archive.namelist()
+                root_dir = all_names[0].split('/')[0] if all_names else None
+                archive.extractall(".")
+
+        #elif suffix == '.7z':
+        #    with py7zr.SevenZipFile(zip_path, mode='r') as archive:
+        #        archive.extractall(path=".")
+        #        all_names = archive.getnames()
+        #        root_dir = os.path.commonpath(all_names) if all_names else None
+
+        for exe_name in targets:
+            match = [f for f in all_names if f.endswith(exe_name)]
+            if match:
+                extracted_path = os.path.join(".", match[0])
+                shutil.move(extracted_path, exe_name)
+                print(f"Extraction complete: {exe_name}")
             else:
-                print("ffprobe.exe not found in the ZIP archive.")
+                print(f"{exe_name} not found in the archive.")
                 return False
     except Exception as e:
-        print("Failed to extract the ZIP archive:", e)
+        print("Failed to extract the archive:", e)
         return False
-    finally:
-        if os.path.exists(zip_path):
-            try:
-                os.remove(zip_path)
-            except OSError as e:
-                print(f"Failed to remove zip file: {e}")
-                return False
 
-        # Delete the root folder name in the obtained ZIP
-        if root_dir and os.path.exists(root_dir):
-            try:
+    finally:
+        try:
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+            if root_dir and os.path.exists(root_dir):
                 shutil.rmtree(root_dir)
                 print(f"Removed extracted folder: {root_dir}")
-            except OSError as e:
-                print(f"Failed to remove folder {root_dir}: {e.strerror} (Error Code: {e.errno})")
-                return False
+        except Exception as e:
+            print(f"Cleanup error: {e}")
+            return False
+
     return True
 
 ## @fn          movie_get_date()
@@ -379,11 +502,11 @@ def download_and_extract_ffprobe(zip_url: str) -> bool:
 ## @retval      exif_data       : exif info (key,value) [type List[Tuple[str, Any]]]
 def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
     flag = False    # Initializing variables
-    inf: Dict[str, Optional[str]] = {'year':None, 'month':None, 'day':None , 'hour':None, 'min':None, 'sec':None} #変数の初期化
+    inf: Dict[str, Optional[str]] = {'year':None, 'month':None, 'day':None , 'hour':None, 'min':None, 'sec':None} # Initializing variables
 
     if(is_ffprobe() == False):
         # If a proxy is set in the environment variables, the proxy information will be used for downloading.
-        # If you downloaded the zip file, unzip and extract ffprobe into the same folder as the script.
+        # (1) Download the compressed file. (2) Unzip the file. (3) Extract ffprobe to the same folder as the script.
         res_flag = download_and_extract_ffprobe(url)
         if(res_flag == False):
             print("Error detect. Failed to download ffprobe.")
@@ -392,7 +515,7 @@ def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
     video_info = ffmpeg.probe(filename)
     move_format = video_info.get('format')
     tags = move_format.get('tags')
-    # Checks if tags is not None & 'creation_time' key exists.
+    # tags is not None & Checks if the 'creation_time' key exists.
     inf_time = tags.get('creation_time') if tags and 'creation_time' in tags else None
     if (inf_time != None):
         pattern = re.compile("(?P<year>[0-9]{4})-(?P<month>[0-9]{1,2})-(?P<day>[0-9]{1,2})T(?P<hour>[0-9]{1,2}):(?P<min>[0-9]{1,2}):(?P<sec>[0-9]+)[\.][0-9]+Z")
@@ -419,12 +542,11 @@ def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
     return inf
 
 ##
-# @brief        Obtain jpeg exif information. Easily obtain exif using library PIL.
+# @brief        Gets the Exif information of JPEG. Uses the PIL library to get the Exif information.
 # @param[in]    file            : input file [type str]
 # @param[in]    field           : exif tag info [type str]
 # @retval       exif_data       : exif info (key,value) [type List[Tuple[str, Any]]]
 def get_exif(file: str,field: str) -> List[Tuple[str, Any]] :
-    #参考URL: https://qiita.com/Gen6/items/88c69ab3a0666895e7a8
     try:
         img = Image.open(file)
     except Exception as e:
@@ -458,7 +580,7 @@ def get_exif(file: str,field: str) -> List[Tuple[str, Any]] :
 
 
 ##
-# @brief        Get date information from string information
+# @brief        Get date information from string information.
 # @param[in]    str             : string [type str]
 # @retval       year,month,day  : date info [type list]
 def get_dateinf(str_s) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -485,7 +607,6 @@ def get_dateinf(str_s) -> Tuple[Optional[str], Optional[str], Optional[str]]:
 # @retval       inf             : date info [type Dict]
 def get_date_info_fm_raw(filename: str, tag: int, erropt=0)->Dict:
     exif_dict = piexif.load(filename)
-    #pprint(exif_dict)
     inf: Dict[str,  Optional[str]] = {}
     if(tag in exif_dict['Exif']):
         date = exif_dict['Exif'][tag]
@@ -544,10 +665,11 @@ def get_ini_dict_val(section: str) -> ini.IniDict:
     '''
     return {
         section: {
-            'picture_ext': {'type': List[str], 'inf': ['.jpg', '.jpeg' ,'.tif']},
+            'picture_ext': {'type': List[str], 'inf': ['.jpg', '.jpeg' , '.tif']},
             'movie_ext': {'type': List[str], 'inf': ['.mp4', '.mov', '.mts']},
             'raw_ext': {'type': List[str], 'inf': ['.orf']},
             'mtime_ext': {'type': List[str], 'inf': ['.mts']},
+            'heic_ext': {'type': List[str], 'inf': ['.heic']},
             'url_ffmpeg': {'type': str, 'inf': "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"},
             'date_format': {'type': str, 'inf': "%Y_%m_%d"},
             'tar_folder': {'type': str, 'inf': '.'},
@@ -559,16 +681,14 @@ def get_ini_dict_val(section: str) -> ini.IniDict:
 #  @param[in]  None            : 
 #  @retval     ini_file        : ini file name [type str]
 def get_inifile() -> str:
-    (src_root,src_ext) = os.path.splitext(SCR_PATH)
-    if src_ext != "":
-        ini_file = SCR_PATH.replace(src_ext, '.ini')
-    else:
-        # linux のpyinstallerでbinary作成していると拡張子がない
-        ini_file = f"{SCR_PATH}.ini"
-    return ini_file
+    """Gets the basename of the running script and returns it with the .ini extension."""
+    script_name = os.path.basename(sys.argv[0])
+    base_name, _ = os.path.splitext(script_name)
+    ini_name = base_name + ".ini"
+    return ini_name
 
 ##
-# @brief        After displaying the string msg, execute sys.exit(1).
+# @brief        After displaying the message string, execute sys.exit(1).
 # @param[in]    filename        : target file name [type str]
 # @retval       none            : 
 def die_print(msg: str) -> None:
