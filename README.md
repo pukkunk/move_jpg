@@ -49,6 +49,15 @@ tar_folder = .
 - date_format = Date format
 - tar_folder = Target folder
 
+## Check operation with pytest
+- step1: To download ffmpeg and ffprobe, run tests/download_ffmpeg.py.
+```python
+python tests\download_ffmpeg
+```
+- step2: Run pytest
+```python
+pytest
+```
 
 ## license
 MIT License

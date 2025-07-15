@@ -246,7 +246,7 @@ def test_move_png(setup_test_files):
     """
     Test the file move process of move_jpg.py
     """
-    enb_delete_folder = False
+    enb_delete_folder = True
     test_dir = setup_test_files
 
     for i in range(1, 6):

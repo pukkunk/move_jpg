@@ -91,14 +91,12 @@ class ExtDict(TypedDict):
     mtime_ext: List[str]
     movie_ext: List[str]
 
-__version__ = f"0.1.2, python={platform.python_version()} {platform.architecture()[0]}"
+__version__ = f"0.1.3, python={platform.python_version()} {platform.architecture()[0]}"
 __copyright__    = 'pukkunk'
 __author__       = 'pukkunk'
 
-SCR_PATH = os.path.abspath(sys.argv[0])
-SCR_FOLDER = os.path.dirname(SCR_PATH)
-
 def main(args=None) -> None:
+    init_paths()
     h_word = "Refer to the date information of the image files and move the files to the date folder."
     parser = argparse.ArgumentParser(
         prog=os.path.basename(SCR_PATH),
@@ -408,10 +406,9 @@ def progress_hook(count, block_size, total_size):
     bar = f"[{'=' * (percent // 2):50}]"
     print(f"\rDownloading {bar} {percent}% complete", end='')
 
-def download_and_extract_ffprobe(zip_url: str) -> bool:
+def download_and_extract_ffprobe(zip_url: str, extract_path: str) -> bool:
     enb_ffprobe = not is_ffprobe()
     enb_ffmpeg = False
-
     if not (enb_ffprobe or enb_ffmpeg):
         print("download is disabled.")
         return True
@@ -433,7 +430,7 @@ def download_and_extract_ffprobe(zip_url: str) -> bool:
         print(f"Unsupported archive type: {suffix}")
         return False
 
-    zip_path = f"ffmpeg{suffix}"
+    zip_path = os.path.join(extract_path, f"ffmpeg{suffix}")
 
     proxy_dict = {}
     if os.environ.get("HTTP_PROXY"):
@@ -461,20 +458,21 @@ def download_and_extract_ffprobe(zip_url: str) -> bool:
             with zipfile.ZipFile(zip_path, 'r') as archive:
                 all_names = archive.namelist()
                 root_dir = all_names[0].split('/')[0] if all_names else None
-                archive.extractall(".")
+                archive.extractall(extract_path)
 
         #elif suffix == '.7z':
         #    with py7zr.SevenZipFile(zip_path, mode='r') as archive:
-        #        archive.extractall(path=".")
+        #        archive.extractall(path=extract_path)
         #        all_names = archive.getnames()
         #        root_dir = os.path.commonpath(all_names) if all_names else None
 
         for exe_name in targets:
             match = [f for f in all_names if f.endswith(exe_name)]
             if match:
-                extracted_path = os.path.join(".", match[0])
-                shutil.move(extracted_path, exe_name)
-                print(f"Extraction complete: {exe_name}")
+                extracted_path = os.path.join(extract_path, match[0])
+                target_path = os.path.join(extract_path, exe_name)
+                shutil.move(extracted_path, target_path)
+                print(f"Extraction complete: {target_path}")
             else:
                 print(f"{exe_name} not found in the archive.")
                 return False
@@ -486,9 +484,11 @@ def download_and_extract_ffprobe(zip_url: str) -> bool:
         try:
             if os.path.exists(zip_path):
                 os.remove(zip_path)
-            if root_dir and os.path.exists(root_dir):
-                shutil.rmtree(root_dir)
-                print(f"Removed extracted folder: {root_dir}")
+            if root_dir:
+                root_dir_path = os.path.join(extract_path, root_dir)
+                if os.path.exists(root_dir_path):
+                    shutil.rmtree(root_dir_path)
+                    print(f"Removed extracted folder: {root_dir_path}")
         except Exception as e:
             print(f"Cleanup error: {e}")
             return False
@@ -507,7 +507,7 @@ def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
     if(is_ffprobe() == False):
         # If a proxy is set in the environment variables, the proxy information will be used for downloading.
         # (1) Download the compressed file. (2) Unzip the file. (3) Extract ffprobe to the same folder as the script.
-        res_flag = download_and_extract_ffprobe(url)
+        res_flag = download_and_extract_ffprobe(url, extract_path=SCR_FOLDER)
         if(res_flag == False):
             print("Error detect. Failed to download ffprobe.")
             return inf
@@ -694,6 +694,11 @@ def get_inifile() -> str:
 def die_print(msg: str) -> None:
     print(msg)
     sys.exit(NG_VAL)
+
+def init_paths():
+    global SCR_PATH, SCR_FOLDER
+    SCR_PATH = os.path.abspath(sys.argv[0])
+    SCR_FOLDER = os.path.dirname(SCR_PATH)
 
 if __name__ == "__main__":
     main()
