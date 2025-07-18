@@ -91,7 +91,7 @@ class ExtDict(TypedDict):
     mtime_ext: List[str]
     movie_ext: List[str]
 
-__version__ = f"0.1.3, python={platform.python_version()} {platform.architecture()[0]}"
+__version__ = f"0.1.4, python={platform.python_version()} {platform.architecture()[0]}"
 __copyright__    = 'pukkunk'
 __author__       = 'pukkunk'
 
@@ -666,8 +666,8 @@ def get_ini_dict_val(section: str) -> ini.IniDict:
     return {
         section: {
             'picture_ext': {'type': List[str], 'inf': ['.jpg', '.jpeg' , '.tif']},
-            'movie_ext': {'type': List[str], 'inf': ['.mp4', '.mov', '.mts']},
-            'raw_ext': {'type': List[str], 'inf': ['.orf']},
+            'movie_ext': {'type': List[str], 'inf': ['.mp4', '.mov', '.cr3']},
+            'raw_ext': {'type': List[str], 'inf': ['.orf', '.nef', '.arw']},
             'mtime_ext': {'type': List[str], 'inf': ['.mts']},
             'heic_ext': {'type': List[str], 'inf': ['.heic']},
             'url_ffmpeg': {'type': str, 'inf': "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"},

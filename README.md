@@ -49,6 +49,25 @@ tar_folder = .
 - date_format = Date format
 - tar_folder = Target folder
 
+## Tested Environments
+
+- OS:
+  - Windows 11 Pro (64-bit)
+- Python versions:
+  - 3.8.10
+- Tested Image Files:
+  - Canon RAW Files
+    - EOS R5 (.CR3)
+  - Nikon RAW Files
+    - NIKON Z9 (.NEF)
+  - Sony RAW Files
+    - Sony a7 IV (.ARW)
+  - Olympus RAW Files
+    - E-M10 Mark II (.ORF)
+
+### Notes on metadata extraction
+- Canon EOS R5 `.CR3` files are MP4-based container formats (ISO Base Media File Format). This can be done by specifying '.cr3' for movie_ext.
+
 ## Check operation with pytest
 - step1: To download ffmpeg and ffprobe, run tests/download_ffmpeg.py.
 ```python

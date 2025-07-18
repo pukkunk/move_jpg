@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.4] - 2025-07-19
+### Changed
+- `move_jpg.py`: 
+  - Added the extension '.cr3' to movie_ext.
+  - Added the extensions '.nef' and '.arw' to raw_ext.
+- `tests/test_move_jpg.py`: 
+  - def test_no_argument(): Added
+- `README.md`: 
+  - Added 'Tested Environments'.
+
 ## [v0.1.3] - 2025-07-15
 ### Changed
 - `move_jpg.py`: 

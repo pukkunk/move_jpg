@@ -300,3 +300,64 @@ def test_move_png(setup_test_files):
     if(enb_delete_folder):
         if test_dir.exists():
             shutil.rmtree(test_dir)
+
+def test_no_argument(setup_test_files):
+    """
+    Test the file move process of move_jpg.py
+    """
+    enb_delete_folder = True
+    test_dir = setup_test_files
+
+    for i in range(1, 6):
+        file_path = test_dir / f"ammonite_{i:03}.jpg"
+        assert file_path.exists(), f"{file_path.name} should be created"
+    png_file = test_dir / "ammonite_007.png"
+    assert png_file.exists(), "PNG file should be created"
+    for i in range(8, 10):
+        file_path = test_dir / f"ammonite_{i:03}.tif"
+        assert file_path.exists(), f"{file_path.name} should be created"
+    for i in range(1, 2):
+        file_path = test_dir / f"sample_{i:03}.jpg"
+        assert file_path.exists(), f"{file_path.name} should be created"
+
+    ini_file = os.path.abspath(os.path.join(SCR_FOLDER, "../move_jpg.ini"))
+    section = 'move_jpg'
+    key = 'tar_folder'
+    val = './test_dir'
+    set_ini_value(ini_file, section, key, val)
+
+    # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
+    move_jpg_path = os.path.abspath('move_jpg.py')
+    test_args = [move_jpg_path]
+
+    with mock.patch.object(sys, 'argv', test_args):
+        # Mock input() to always return "y"
+        with mock.patch('builtins.input', return_value='y'):
+            with pytest.raises(SystemExit) as exc_info:
+                move_jpg.main()
+            assert exc_info.type == SystemExit
+            assert exc_info.value.code == 0
+
+    # Check the result of the move
+    for i in range(1, 6):
+        file_path = test_dir / f"ammonite_{i:03}.jpg"
+        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+    png_file = test_dir / "ammonite_007.png"
+    assert png_file.exists(), "PNG file should not have been moved"
+    for i in range(8, 10):
+        file_path = test_dir / f"ammonite_{i:03}.tif"
+        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+
+    for i in range(1, 2):
+        file_path = test_dir / f"sample_{i:03}.jpg"
+        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+
+    section = 'move_jpg'
+    key = 'tar_folder'
+    val = '.'
+    set_ini_value(ini_file, section, key, val)
+
+    if(enb_delete_folder):
+        if test_dir.exists():
+            shutil.rmtree(test_dir)
+
