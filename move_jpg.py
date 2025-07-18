@@ -95,6 +95,8 @@ __version__ = f"0.1.4, python={platform.python_version()} {platform.architecture
 __copyright__    = 'pukkunk'
 __author__       = 'pukkunk'
 
+SCR_PATH: str
+SCR_FOLDER: str
 def main(args=None) -> None:
     init_paths()
     h_word = "Refer to the date information of the image files and move the files to the date folder."
@@ -194,6 +196,8 @@ def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_
     mtime_ext = dict_tar_ext['mtime_ext']
     movie_ext = dict_tar_ext['movie_ext']
 
+    # Add the script folder to the PATH environment variable.
+    add_tardir_envpath(SCR_FOLDER)
     required_keys = ['year', 'month', "day"]
     for file in files:
         print("file=%s" % file)
@@ -240,8 +244,6 @@ def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_
                 month = inf['month']
                 day = inf['day']
         elif(ext.lower() in movie_ext):
-            # Add the script folder to the PATH environment variable.
-            add_tardir_envpath(SCR_FOLDER)
             # Get date information.
             inf = movie_get_date(file, url_ffmpeg)
             if all(key in inf for key in required_keys):

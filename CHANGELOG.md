@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `move_jpg.py`: 
   - Added the extension '.cr3' to movie_ext.
   - Added the extensions '.nef' and '.arw' to raw_ext.
+  - Fixed the process of adding the current folder to the environment variables so that it is not performed multiple times.
 - `tests/test_move_jpg.py`: 
   - def test_no_argument(): Added
 - `README.md`: 
