@@ -30,8 +30,8 @@ Initial settings
 ```cmd
 [move_jpg]
 picture_ext = .jpg,.jpeg,.tif
-movie_ext = .mp4,.mov
-raw_ext = .orf
+movie_ext = .mp4,.mov,.cr3
+raw_ext = .orf,.nef,.arw
 mtime_ext = .mts
 heic_ext = .heic
 url_ffmpeg = https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip

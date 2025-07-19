@@ -16,6 +16,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - def test_no_argument(): Added
 - `README.md`: 
   - Added 'Tested Environments'.
+  - Added extension information to move_jpg.ini.
 
 ## [v0.1.3] - 2025-07-15
 ### Changed
