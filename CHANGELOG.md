@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.5] - 2025-07-22
+### Changed
+- `move_jpg.py`: 
+  - Fixed to allow ffprobe to be downloaded on Windows and Linux (Ubuntu).
+  - Added the notation "raw" to the regular expression description of def movie_get_date().
+- `tests/download_ffmpeg.py`: 
+  - Fixed to allow ffmpeg to be downloaded on Windows and Linux (Ubuntu).
+- `README.md`: 
+  - Added WSL2 Ubuntu-24.04 LTS to 'Tested Environments'.
+
 ## [v0.1.4] - 2025-07-19
 ### Changed
 - `move_jpg.py`: 

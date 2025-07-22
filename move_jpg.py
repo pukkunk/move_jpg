@@ -11,6 +11,7 @@ import datetime
 import pathlib
 import urllib.request
 import zipfile
+import subprocess
 import platform
 from typing import List, Dict, Tuple, Optional, Any, TypedDict
 OK_VAL = 0
@@ -91,7 +92,7 @@ class ExtDict(TypedDict):
     mtime_ext: List[str]
     movie_ext: List[str]
 
-__version__ = f"0.1.4, python={platform.python_version()} {platform.architecture()[0]}"
+__version__ = f"0.1.5, python={platform.python_version()} {platform.architecture()[0]}"
 __copyright__    = 'pukkunk'
 __author__       = 'pukkunk'
 
@@ -401,6 +402,50 @@ def is_ffprobe() -> bool:
     else:
         return True
 
+def setup_ffprobe(url: str):
+    system = platform.system()
+    if is_ffprobe():
+        return True
+
+    if system == "Windows":
+        # If a proxy is set in the environment variables, the proxy information will be used for downloading.
+        # (1) Download the compressed file. (2) Unzip the file. (3) Extract ffprobe to the same folder as the script.
+        return download_and_extract_ffprobe(url, extract_path=SCR_FOLDER)
+
+    elif system in ["Linux"]:
+        # Raspberry PiやUbuntuなど
+        print("ffprobe not found. Installing via apt...")
+        return install_ffmpeg_linux()
+
+    else:
+        print(f"Unsupported OS: {system}")
+        return False
+
+def install_ffmpeg_linux():
+    enb_ffprobe = not is_ffprobe()
+    if not enb_ffprobe:
+        print("download is disabled.")
+        return True
+
+    targets = []
+    if enb_ffprobe:
+        targets.append("ffprobe")
+
+    target_list_str = " and ".join(targets)
+    user_input = input(f"{target_list_str} not found. Would you like to download it? [y/N]: ").strip().lower()
+    if user_input != "y":
+        print("Canceled download.")
+        return False
+
+    # Raspberry Pi/Ubuntu向け（apt利用）
+    try:
+        subprocess.run(["sudo", "apt", "update"], check=True)
+        subprocess.run(["sudo", "apt", "install", "-y", "ffmpeg"], check=True)
+        return True
+    except Exception as e:
+        print("apt install failed:", e)
+        return False
+
 # Hook function for displaying progress
 def progress_hook(count, block_size, total_size):
     percent = int(count * block_size * 100 / total_size)
@@ -507,11 +552,8 @@ def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
     inf: Dict[str, Optional[str]] = {'year':None, 'month':None, 'day':None , 'hour':None, 'min':None, 'sec':None} # Initializing variables
 
     if(is_ffprobe() == False):
-        # If a proxy is set in the environment variables, the proxy information will be used for downloading.
-        # (1) Download the compressed file. (2) Unzip the file. (3) Extract ffprobe to the same folder as the script.
-        res_flag = download_and_extract_ffprobe(url, extract_path=SCR_FOLDER)
-        if(res_flag == False):
-            print("Error detect. Failed to download ffprobe.")
+        if not setup_ffprobe(url):
+            print("ffprobe setup failed.")
             return inf
 
     video_info = ffmpeg.probe(filename)
@@ -520,7 +562,7 @@ def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
     # tags is not None & Checks if the 'creation_time' key exists.
     inf_time = tags.get('creation_time') if tags and 'creation_time' in tags else None
     if (inf_time != None):
-        pattern = re.compile("(?P<year>[0-9]{4})-(?P<month>[0-9]{1,2})-(?P<day>[0-9]{1,2})T(?P<hour>[0-9]{1,2}):(?P<min>[0-9]{1,2}):(?P<sec>[0-9]+)[\.][0-9]+Z")
+        pattern = re.compile(r"(?P<year>[0-9]{4})-(?P<month>[0-9]{1,2})-(?P<day>[0-9]{1,2})T(?P<hour>[0-9]{1,2}):(?P<min>[0-9]{1,2}):(?P<sec>[0-9]+)[\.][0-9]+Z")
         # 2022-10-29T07:28:08.000000Z
         if(pattern.match(inf_time)):
             m = pattern.match(inf_time)

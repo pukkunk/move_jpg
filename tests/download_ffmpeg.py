@@ -5,6 +5,8 @@ import pathlib
 import shutil
 import urllib.request
 import zipfile
+import subprocess
+import platform
 
 SCR_PATH = os.path.abspath(__file__)
 SCR_FOLDER = os.path.dirname(SCR_PATH)
@@ -16,6 +18,54 @@ def is_ffprobe() -> bool:
 def is_ffmpeg() -> bool:
     from shutil import which
     return which("ffmpeg") is not None
+
+def setup_ffprobe():
+    system = platform.system()
+    if is_ffprobe():
+        return True
+
+    if system == "Windows":
+        # If a proxy is set in the environment variables, the proxy information will be used for downloading.
+        # (1) Download the compressed file. (2) Unzip the file. (3) Extract ffprobe to the same folder as the script.
+        url = 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip'
+        return download_and_extract_ffmpeg(url, extract_path=SCR_FOLDER)
+
+    elif system in ["Linux"]:
+        # Raspberry PiやUbuntuなど
+        print("ffprobe not found. Installing via apt...")
+        return install_ffmpeg_linux()
+
+    else:
+        print(f"Unsupported OS: {system}")
+        return False
+
+def install_ffmpeg_linux():
+    enb_ffprobe = not is_ffprobe()
+    enb_ffmpeg = not is_ffmpeg()
+    if not (enb_ffprobe or enb_ffmpeg):
+        print("download is disabled.")
+        return True
+
+    targets = []
+    if enb_ffprobe:
+        targets.append("ffprobe")
+    if enb_ffmpeg:
+        targets.append("ffmpeg")
+
+    target_list_str = " and ".join(targets)
+    user_input = input(f"{target_list_str} not found. Would you like to download it? [y/N]: ").strip().lower()
+    if user_input != "y":
+        print("Canceled download.")
+        return False
+
+    # Raspberry Pi/Ubuntu向け（apt利用）
+    try:
+        subprocess.run(["sudo", "apt", "update"], check=True)
+        subprocess.run(["sudo", "apt", "install", "-y", "ffmpeg"], check=True)
+        return True
+    except Exception as e:
+        print("apt install failed:", e)
+        return False
 
 def progress_hook(count, block_size, total_size):
     percent = int(count * block_size * 100 / total_size)
@@ -80,13 +130,11 @@ def main():
         print("ffmpeg and ffprobe already found. No download needed.")
         return
 
-    url = 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip'
-    success = download_and_extract_ffmpeg(url, extract_path)
-
-    if success:
-        print("ffmpeg and ffprobe downloaded successfully.")
-    else:
+    if not setup_ffprobe():
         print("ffmpeg and ffprobe download failed.")
+        return inf
+    else:
+        print("ffmpeg and ffprobe downloaded successfully.")
 
 if __name__ == "__main__":
     main()

@@ -51,11 +51,12 @@ tar_folder = .
 
 ## Tested Environments
 
-- OS:
-  - Windows 11 Pro (64-bit)
-- Python versions:
-  - 3.8.10
-- Tested Image Files:
+| OS                    | Python Version   |
+|----------------------|-----------------:|
+| Windows 11 Pro (64-bit) | 3.8.10 (64-bit) |
+| WSL2 Ubuntu-24.04 LTS  | 3.12.3 (64-bit) |
+
+## Tested Image Files
   - Canon RAW Files
     - EOS R5 (.CR3)
   - Nikon RAW Files
