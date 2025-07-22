@@ -72,7 +72,7 @@ tar_folder = .
 ## Check operation with pytest
 - step1: To download ffmpeg and ffprobe, run tests/download_ffmpeg.py.
 ```python
-python tests\download_ffmpeg
+python tests\download_ffmpeg.py
 ```
 - step2: Run pytest
 ```python

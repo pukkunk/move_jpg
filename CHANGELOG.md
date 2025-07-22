@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
+### Changed
+- `README.md`: 
+  - Modified step 1 command of "Check operation with pytest".
 
 ## [v0.1.5] - 2025-07-22
 ### Changed
