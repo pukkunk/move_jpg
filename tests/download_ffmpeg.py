@@ -25,10 +25,26 @@ def setup_ffprobe():
         return True
 
     if system == "Windows":
+        enb_ffprobe = not is_ffprobe()
+        enb_ffmpeg = not is_ffmpeg()
+        if not (enb_ffprobe or enb_ffmpeg):
+            print("download is disabled.")
+            return True
+        targets = []
+        if enb_ffprobe:
+            targets.append("ffprobe")
+        if enb_ffmpeg:
+            targets.append("ffmpeg")
+        target_list_str = " and ".join(targets)
+        user_input = input(f"{target_list_str} not found. Would you like to download it? [y/N]: ").strip().lower()
+        if user_input != "y":
+            print("Canceled download.")
+            return False
         # If a proxy is set in the environment variables, the proxy information will be used for downloading.
         # (1) Download the compressed file. (2) Unzip the file. (3) Extract ffprobe to the same folder as the script.
         url = 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip'
-        return download_and_extract_ffmpeg(url, extract_path=SCR_FOLDER)
+        extract_path = os.path.abspath(os.path.join(SCR_FOLDER, "../"))
+        return download_and_extract_ffmpeg(url, extract_path=extract_path)
 
     elif system in ["Linux"]:
         # Raspberry PiやUbuntuなど
@@ -125,14 +141,12 @@ def download_and_extract_ffmpeg(zip_url: str, extract_path: str) -> bool:
     return True
 
 def main():
-    extract_path = os.path.abspath(os.path.join(SCR_FOLDER, "../"))
     if is_ffmpeg() and is_ffprobe():
         print("ffmpeg and ffprobe already found. No download needed.")
         return
 
     if not setup_ffprobe():
         print("ffmpeg and ffprobe download failed.")
-        return inf
     else:
         print("ffmpeg and ffprobe downloaded successfully.")
 

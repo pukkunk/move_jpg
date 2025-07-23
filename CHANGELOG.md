@@ -5,9 +5,19 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
+
+## [v0.1.6] - 2025-07-23
+###Fixed
+- `tests/download_ffmpeg.py`: 
+  - Fixed a bug in the download folder.
 ### Changed
+- `move_jpg.py`: 
+  - Removed unnecessary duplicate piexif import.
 - `README.md`: 
   - Modified step 1 command of "Check operation with pytest".
+### Added
+- `requirements.txt`: 
+- `tests/requirements.txt`: 
 
 ## [v0.1.5] - 2025-07-22
 ### Changed

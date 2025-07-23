@@ -1,0 +1,6 @@
+pillow_heif
+piexif
+ini_cfg_parser
+Pillow
+ffmpeg-python
+numpy

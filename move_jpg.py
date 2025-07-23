@@ -33,7 +33,7 @@ except ImportError as e:
     print(msg)
     raise SystemExit(NG_VAL)
 try:
-    import piexif
+    import piexif	# type: ignore
 except ImportError as e:
     msg = f"The 'piexif' module is required but not installed.\n"
     msg += f"You can install it with: pip install piexif\n"
@@ -54,14 +54,6 @@ try:
 except ImportError as e:
     msg = f"The 'PIL' module is required but not installed.\n"
     msg += f"You can install it with: pip install Pillow\n"
-    msg += f"Details: {e}"
-    print(msg)
-    raise SystemExit(NG_VAL)
-try:
-    import piexif	# type: ignore
-except ImportError as e:
-    msg = f"The 'piexif' module is required but not installed.\n"
-    msg += f"You can install it with: pip install piexif\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
@@ -92,7 +84,7 @@ class ExtDict(TypedDict):
     mtime_ext: List[str]
     movie_ext: List[str]
 
-__version__ = f"0.1.5, python={platform.python_version()} {platform.architecture()[0]}"
+__version__ = f"0.1.6, python={platform.python_version()} {platform.architecture()[0]}"
 __copyright__    = 'pukkunk'
 __author__       = 'pukkunk'
 
