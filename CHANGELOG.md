@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.7] - 2025-07-31
+### Changed
+- `move_jpg.py`: 
+  - Fixed to display version information for libraries with dependencies when option -v is used.
+  - Modified move_jpg.py to include the version information in the "VERSION" file.
+- `README.md`: 
+  - Added version information of dependent libraries for the environment used in the test.
+### Added
+- `VERSION`: 
+
 ## [v0.1.6] - 2025-07-23
 ###Fixed
 - `tests/download_ffmpeg.py`: 

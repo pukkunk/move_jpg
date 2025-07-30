@@ -24,8 +24,10 @@ NG_VAL = 1
 #    msg += f"Details: {e}"
 #    print(msg)
 #    raise SystemExit(NG_VAL)
+from importlib.metadata import version, PackageNotFoundError
 try:
     from pillow_heif import register_heif_opener
+    import pillow_heif
 except ImportError as e:
     msg = f"The 'pillow_heif' module is required but not installed.\n"
     msg += f"You can install it with: pip install pillow_heif\n"
@@ -84,7 +86,23 @@ class ExtDict(TypedDict):
     mtime_ext: List[str]
     movie_ext: List[str]
 
-__version__ = f"0.1.6, python={platform.python_version()} {platform.architecture()[0]}"
+try:
+    piexif_version = version('piexif')
+except PackageNotFoundError:
+    piexif_version = 'unknown'
+try:
+    ffmpeg_version = version('ffmpeg-python')
+except PackageNotFoundError:
+    ffmpeg_version = 'unknown'
+version_file = pathlib.Path(__file__).parent / "VERSION"
+version_str = version_file.read_text(encoding="utf-8").strip()
+__version__ = f"{version_str}, python={platform.python_version()} {platform.architecture()[0]}\n"
+__version__ += f"piexif={piexif_version}\n"
+__version__ += f"pillow_heif={getattr(pillow_heif, '__version__', 'unknown')}\n"
+__version__ += f"ini_cfg_parser={getattr(ini, '__version__', 'unknown')}\n"
+__version__ += f"Pillow={getattr(Image, '__version__', 'unknown')}\n"
+__version__ += f"ffmpeg-python={ffmpeg_version}\n"
+__version__ += f"numpy={np.__version__}\n"
 __copyright__    = 'pukkunk'
 __author__       = 'pukkunk'
 
