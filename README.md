@@ -56,6 +56,30 @@ tar_folder = .
 | Windows 11 Pro (64-bit) | 3.8.10 (64-bit) |
 | WSL2 Ubuntu-24.04 LTS  | 3.12.3 (64-bit) |
 
+---
+
+## Dependency Versions
+
+### Windows 11 Pro (64-bit)
+| Library          | Version  |
+|------------------|--------:|
+| piexif           | 1.1.3   |
+| pillow_heif      | 0.18.0  |
+| ini_cfg_parser   | 0.1.7   |
+| Pillow           | 10.4.0  |
+| ffmpeg-python    | 0.2.0   |
+| numpy            | 1.24.4  |
+
+### WSL2 Ubuntu-24.04 LTS
+| Library          | Version  |
+|------------------|--------:|
+| piexif           | 1.1.3   |
+| pillow_heif      | 1.0.0   |
+| ini_cfg_parser   | 0.1.7   |
+| Pillow           | 11.3.0  |
+| ffmpeg-python    | 0.2.0   |
+| numpy            | 2.3.1   |
+
 ## Tested Image Files
   - Canon RAW Files
     - EOS R5 (.CR3)
