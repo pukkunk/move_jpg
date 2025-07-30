@@ -13,6 +13,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Modified move_jpg.py to include the version information in the "VERSION" file.
 - `README.md`: 
   - Added version information of dependent libraries for the environment used in the test.
+- `make_exe_py.bat`: 
+  - Modified .bat to use the file "VERSION" as version information.
+- `make_exe_py.sh`: 
+  - Modified .sh to use the file "VERSION" as version information.
 ### Added
 - `VERSION`: 
 

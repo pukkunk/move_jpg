@@ -94,7 +94,14 @@ try:
     ffmpeg_version = version('ffmpeg-python')
 except PackageNotFoundError:
     ffmpeg_version = 'unknown'
-version_file = pathlib.Path(__file__).parent / "VERSION"
+
+if getattr(sys, 'frozen', False):
+    # For an exe built with PyInstaller
+    base_path = pathlib.Path(getattr(sys, '_MEIPASS'))
+else:
+    # When running a normal Python script
+    base_path = pathlib.Path(__file__).parent
+version_file = base_path / "VERSION"
 version_str = version_file.read_text(encoding="utf-8").strip()
 __version__ = f"{version_str}, python={platform.python_version()} {platform.architecture()[0]}\n"
 __version__ += f"piexif={piexif_version}\n"
