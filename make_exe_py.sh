@@ -37,7 +37,6 @@ pip install ffmpeg-python
 
 # Build with PyInstaller
 pyinstaller move_jpg.py --onefile \
-    --add-data "VERSION:." \
     --hidden-import=PIL._imaging \
     --hidden-import=PIL.Image \
     --hidden-import=PIL.ExifTags \

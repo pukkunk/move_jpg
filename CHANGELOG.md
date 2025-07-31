@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.8] - 2025-07-31
+### Changed
+- `move_jpg.py`: 
+  - Stopped managing versions with the "VERSION" file and corrected it to the original description.
+  - Create short version information.
+
 ## [v0.1.7] - 2025-07-31
 ### Changed
 - `move_jpg.py`: 

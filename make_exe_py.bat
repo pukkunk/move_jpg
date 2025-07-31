@@ -13,4 +13,4 @@ pip install piexif
 pip install pillow_heif
 pip install numpy
 pip install ffmpeg-python
-pyinstaller move_jpg.py --onefile --hidden-import=PIL._imaging --hidden-import=PIL.Image --hidden-import=PIL.ExifTags --hidden-import=piexif --hidden-import=ffmpeg --hidden-import=ffmpeg._run --hidden-import=ffmpeg._probe --add-data "VERSION;."
+pyinstaller move_jpg.py --onefile --hidden-import=PIL._imaging --hidden-import=PIL.Image --hidden-import=PIL.ExifTags --hidden-import=piexif --hidden-import=ffmpeg --hidden-import=ffmpeg._run --hidden-import=ffmpeg._probe

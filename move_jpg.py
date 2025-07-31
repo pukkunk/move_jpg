@@ -95,15 +95,8 @@ try:
 except PackageNotFoundError:
     ffmpeg_version = 'unknown'
 
-if getattr(sys, 'frozen', False):
-    # For an exe built with PyInstaller
-    base_path = pathlib.Path(getattr(sys, '_MEIPASS'))
-else:
-    # When running a normal Python script
-    base_path = pathlib.Path(__file__).parent
-version_file = base_path / "VERSION"
-version_str = version_file.read_text(encoding="utf-8").strip()
-__version__ = f"{version_str}, python={platform.python_version()} {platform.architecture()[0]}\n"
+__version_short__ = f"0.1.8, python={platform.python_version()} {platform.architecture()[0]}"
+__version__ = f"{__version_short__}\n"
 __version__ += f"piexif={piexif_version}\n"
 __version__ += f"pillow_heif={getattr(pillow_heif, '__version__', 'unknown')}\n"
 __version__ += f"ini_cfg_parser={getattr(ini, '__version__', 'unknown')}\n"
@@ -199,7 +192,7 @@ def main(args=None) -> None:
         'movie_ext': opt['movie_ext'],
     }
 
-    print(f"{os.path.basename(SCR_PATH)} version={__version__ }")
+    print(f"{os.path.basename(SCR_PATH)} version={__version_short__}")
     print(f"<<  target  folder:{tar_folder}  >>")
     current_path = os.getcwd()  # Preserve original current directory information
     os.chdir(tar_folder)        # Change to the target directory
@@ -269,7 +262,7 @@ def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_
                 month = inf['month']
                 day = inf['day']
 
-        if (year is not None) and (month is not None) and (day is not None):
+        if None not in (year, month, day):
             # Creating and Changing Directories
             dt = datetime.datetime(int(year), int(month), int(day))  # Explicitly create a datetime object.
             dir_date = dt.strftime(date_format)
