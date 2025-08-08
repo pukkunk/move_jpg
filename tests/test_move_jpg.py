@@ -16,7 +16,7 @@ SCR_FOLDER = os.path.dirname(SCR_PATH)
 
 def set_ini_value(ini_file: str, section: str, key: str, val: str):
     ini_path = Path(ini_file)
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(interpolation=None)
 
     if ini_path.exists():
         config.read(ini_file, encoding="shiftjis")
@@ -355,6 +355,66 @@ def test_no_argument(setup_test_files):
     section = 'move_jpg'
     key = 'tar_folder'
     val = '.'
+    set_ini_value(ini_file, section, key, val)
+
+    if(enb_delete_folder):
+        if test_dir.exists():
+            shutil.rmtree(test_dir)
+
+def test_move_files_by_date_fmt_yyyymmdd(setup_test_files):
+    """
+    Test the file move process of move_jpg.py
+    """
+    enb_delete_folder = False
+    test_dir = setup_test_files
+
+    ini_file = os.path.abspath(os.path.join(SCR_FOLDER, "../move_jpg.ini"))
+    section = 'move_jpg'
+    key = 'date_format'
+    val = r'%Y%m%d'
+    set_ini_value(ini_file, section, key, val)
+
+    for i in range(1, 6):
+        file_path = test_dir / f"ammonite_{i:03}.jpg"
+        assert file_path.exists(), f"{file_path.name} should be created"
+    png_file = test_dir / "ammonite_007.png"
+    assert png_file.exists(), "PNG file should be created"
+    for i in range(8, 10):
+        file_path = test_dir / f"ammonite_{i:03}.tif"
+        assert file_path.exists(), f"{file_path.name} should be created"
+    for i in range(1, 2):
+        file_path = test_dir / f"sample_{i:03}.jpg"
+        assert file_path.exists(), f"{file_path.name} should be created"
+
+    # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
+    move_jpg_path = os.path.abspath('move_jpg.py')
+    test_args = [move_jpg_path, "-t", str(test_dir)]
+
+    with mock.patch.object(sys, 'argv', test_args):
+        # Mock input() to always return "y"
+        with mock.patch('builtins.input', return_value='y'):
+            with pytest.raises(SystemExit) as exc_info:
+                move_jpg.main()
+            assert exc_info.type == SystemExit
+            assert exc_info.value.code == 0
+
+    # Check the result of the move
+    for i in range(1, 6):
+        file_path = test_dir / f"ammonite_{i:03}.jpg"
+        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+    png_file = test_dir / "ammonite_007.png"
+    assert png_file.exists(), "PNG file should not have been moved"
+    for i in range(8, 10):
+        file_path = test_dir / f"ammonite_{i:03}.tif"
+        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+
+    for i in range(1, 2):
+        file_path = test_dir / f"sample_{i:03}.jpg"
+        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+
+    section = 'move_jpg'
+    key = 'date_format'
+    val = '%Y_%m_%d'
     set_ini_value(ini_file, section, key, val)
 
     if(enb_delete_folder):

@@ -1,4 +1,5 @@
 # move_jpg.py
+日本語版はこちら → [README.ja.md](README.ja.md)
 
 This script organizes image files into date folders.
 - (1) Get image file information for the target folder.
@@ -18,7 +19,7 @@ The following information is obtained from the configuration file and processed:
 
 ## Usage
 
-To organize image files in a folder containing a script, use
+To organize image files in the same folder as the script, run the following (default settings)
 ```python
 python move_jpg.py
 or
@@ -39,15 +40,15 @@ date_format = %Y_%m_%d
 tar_folder = .
 ```
 
-- picture_ext = Still image file extension
-- movie_ext = Movie file extension
-- raw_ext = Raw file extension
-- mtime_ext = Mtime information processing file extension
-- heic_ext = The file extension for HCIE format images.
-- url_ffmpeg = ffmepg download URL
-　If the program file "ffprobe.exe" does not exist, obtain it from the URL.
-- date_format = Date format
-- tar_folder = Target folder
+- picture_ext = Still image file extension  
+- movie_ext = Movie file extension  
+- raw_ext = Raw file extension  
+- mtime_ext = Mtime information processing file extension  
+- heic_ext = The file extension for HCIE format images.  
+- url_ffmpeg = ffmepg download URL  
+    If the program file "ffprobe.exe" does not exist, obtain it from the URL.  
+- date_format = Date format  
+- tar_folder = Target folder  
 
 ## Tested Environments
 
