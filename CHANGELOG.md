@@ -12,6 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Fixed to be able to switch between Japanese and English.
 - `tests/test_move_jpg.py`: 
   - Added "interpolation=None" to the configparser options. Fixed to not perform interpolation.
+- `move_jpg.py`: 
+  - Corrected the version number.
 ### Added
 - `README.ja.md`: 
 

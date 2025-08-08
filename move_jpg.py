@@ -95,7 +95,7 @@ try:
 except PackageNotFoundError:
     ffmpeg_version = 'unknown'
 
-__version_short__ = f"0.1.8, python={platform.python_version()} {platform.architecture()[0]}"
+__version_short__ = f"0.1.9, python={platform.python_version()} {platform.architecture()[0]}"
 __version__ = f"{__version_short__}\n"
 __version__ += f"piexif={piexif_version}\n"
 __version__ += f"pillow_heif={getattr(pillow_heif, '__version__', 'unknown')}\n"
