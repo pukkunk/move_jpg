@@ -13,7 +13,8 @@ import urllib.request
 import zipfile
 import subprocess
 import platform
-from typing import List, Dict, Tuple, Optional, Any, TypedDict
+import time
+from typing import List, Dict, Tuple, Optional, Any, TypedDict, Union
 OK_VAL = 0
 NG_VAL = 1
 #try:
@@ -26,8 +27,8 @@ NG_VAL = 1
 #    raise SystemExit(NG_VAL)
 from importlib.metadata import version, PackageNotFoundError
 try:
-    from pillow_heif import register_heif_opener
-    import pillow_heif
+    from pillow_heif import register_heif_opener     # type: ignore
+    import pillow_heif   # type: ignore
 except ImportError as e:
     msg = f"The 'pillow_heif' module is required but not installed.\n"
     msg += f"You can install it with: pip install pillow_heif\n"
@@ -35,7 +36,7 @@ except ImportError as e:
     print(msg)
     raise SystemExit(NG_VAL)
 try:
-    import piexif	# type: ignore
+    import piexif   # type: ignore
 except ImportError as e:
     msg = f"The 'piexif' module is required but not installed.\n"
     msg += f"You can install it with: pip install piexif\n"
@@ -43,7 +44,7 @@ except ImportError as e:
     print(msg)
     raise SystemExit(NG_VAL)
 try:
-    import ini_cfg_parser as ini
+    import ini_cfg_parser as ini     # type: ignore
 except ImportError as e:
     msg = f"The 'ini_cfg_parser' module is required but not installed.\n"
     msg += f"You can install it with: pip install ini_cfg_parser\n"
@@ -51,8 +52,8 @@ except ImportError as e:
     print(msg)
     raise SystemExit(NG_VAL)
 try:
-    from PIL import Image	# type: ignore
-    from PIL.ExifTags import TAGS	# type: ignore
+    from PIL import Image   # type: ignore
+    from PIL.ExifTags import TAGS   # type: ignore
 except ImportError as e:
     msg = f"The 'PIL' module is required but not installed.\n"
     msg += f"You can install it with: pip install Pillow\n"
@@ -95,7 +96,7 @@ try:
 except PackageNotFoundError:
     ffmpeg_version = 'unknown'
 
-__version_short__ = f"0.1.9, python={platform.python_version()} {platform.architecture()[0]}"
+__version_short__ = f"0.1.10, python={platform.python_version()} {platform.architecture()[0]}"
 __version__ = f"{__version_short__}\n"
 __version__ += f"piexif={piexif_version}\n"
 __version__ += f"pillow_heif={getattr(pillow_heif, '__version__', 'unknown')}\n"
@@ -264,7 +265,8 @@ def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_
 
         if None not in (year, month, day):
             # Creating and Changing Directories
-            dt = datetime.datetime(int(year), int(month), int(day))  # Explicitly create a datetime object.
+            if year is not None and month is not None and day is not None:
+                dt = datetime.datetime(int(year), int(month), int(day))
             dir_date = dt.strftime(date_format)
             if not os.path.exists(dir_date):
                 os.makedirs(dir_date)
@@ -275,7 +277,7 @@ def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_
             if(os.path.exists(newfile)):
                 print (f"{newfile} already exists.")
             else:
-                new_path = shutil.move(file, newdir)
+                new_path = safe_move(file, newdir)
                 print(f"{file} is moved. {newdir}")
         else:
             #if(ext.lower()==".jpg") or (ext.lower()==".jpeg"):
@@ -528,7 +530,7 @@ def download_and_extract_ffprobe(zip_url: str, extract_path: str) -> bool:
             if match:
                 extracted_path = os.path.join(extract_path, match[0])
                 target_path = os.path.join(extract_path, exe_name)
-                shutil.move(extracted_path, target_path)
+                safe_move(extracted_path, target_path)
                 print(f"Extraction complete: {target_path}")
             else:
                 print(f"{exe_name} not found in the archive.")
@@ -753,6 +755,36 @@ def init_paths():
     global SCR_PATH, SCR_FOLDER
     SCR_PATH = os.path.abspath(sys.argv[0])
     SCR_FOLDER = os.path.dirname(SCR_PATH)
+
+PathLike = Union[str, os.PathLike]
+
+def safe_move(
+    src: PathLike,
+    dst: PathLike,
+    max_retry: int = 5,
+    retry_wait: float = 1.0
+) -> PathLike:
+    """
+    Wrapper for shutil.move with retry handling
+
+    :param src: source path
+    :param dst: destination path
+    :param max_retry: number of retries
+    :param retry_wait: wait time between retries (seconds)
+    :return: destination path
+    """
+    for i in range(max_retry):
+        try:
+            result = shutil.move(src, dst)
+            return result
+        except PermissionError as e:
+            print(f"[{i+1}/{max_retry}] PermissionError: {e}")
+            time.sleep(retry_wait)
+        except Exception as e:
+            print(f"Other error occurred: {e}")
+            raise
+
+    raise PermissionError(f"Retry limit reached: {src}")
 
 if __name__ == "__main__":
     main()
