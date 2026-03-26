@@ -1,6 +1,7 @@
 # move_jpg.py
 日本語版はこちら → [README.ja.md](README.ja.md)
 
+A simple Python utility for automatically moving and organizing image and video files in various formats.  
 This script organizes image files into date folders.
 - (1) Get image file information for the target folder.
 - (2) Get date information from the image file.

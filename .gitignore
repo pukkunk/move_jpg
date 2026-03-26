@@ -1,0 +1,15 @@
+# Virtual environment
+venv/
+
+# Build artifacts
+dist/
+build/
+
+# Cache
+.mypy_cache/
+
+# PyInstaller spec files
+*.spec
+
+# Executables
+*.exe
