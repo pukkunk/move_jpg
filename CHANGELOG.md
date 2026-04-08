@@ -8,8 +8,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - `README.md`: 
   - add project description to top of README
+  - Added "OM-1 (.ORF)" to Tested Image Files.
 - `README.ja.md`: 
   - add project description to top of README
+  - Added "OM-1 (.ORF)" to Tested Image Files.
 
 ## [v0.1.9] - 2025-08-08
 ### Changed

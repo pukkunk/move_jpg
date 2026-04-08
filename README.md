@@ -91,6 +91,8 @@ tar_folder = .
     - Sony a7 IV (.ARW)
   - Olympus RAW Files
     - E-M10 Mark II (.ORF)
+  - OM SYSTEM
+    - OM-1 (.ORF)
 
 ### Notes on metadata extraction
 - Canon EOS R5 `.CR3` files are MP4-based container formats (ISO Base Media File Format). This can be done by specifying '.cr3' for movie_ext.
