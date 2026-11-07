@@ -35,9 +35,10 @@ def set_ini_value(ini_file: str, section: str, key: str, val: str):
 def add_tardir_envpath(dirname: str) -> None :
     # Get the current PATH environment variable
     current_path = os.environ.get("PATH", "")
+    path_list = current_path.split(os.pathsep)
 
     # Add SCR_FOLDER to the beginning of the environment variable PATH.
-    if dirname not in current_path:
+    if dirname not in path_list:
         os.environ["PATH"] = dirname + os.pathsep + current_path
 
 ## @fn          is_ffprobe()
@@ -200,47 +201,49 @@ def test_move_files_by_date(setup_test_files):
     enb_delete_folder = True
     test_dir = setup_test_files
 
-    for i in range(1, 6):
-        file_path = test_dir / f"ammonite_{i:03}.jpg"
-        assert file_path.exists(), f"{file_path.name} should be created"
-    png_file = test_dir / "ammonite_007.png"
-    assert png_file.exists(), "PNG file should be created"
-    for i in range(8, 10):
-        file_path = test_dir / f"ammonite_{i:03}.tif"
-        assert file_path.exists(), f"{file_path.name} should be created"
-    for i in range(1, 2):
-        file_path = test_dir / f"sample_{i:03}.jpg"
-        assert file_path.exists(), f"{file_path.name} should be created"
+    try:
+        for i in range(1, 6):
+            file_path = test_dir / f"ammonite_{i:03}.jpg"
+            assert file_path.exists(), f"{file_path.name} should be created"
+        png_file = test_dir / "ammonite_007.png"
+        assert png_file.exists(), "PNG file should be created"
+        for i in range(8, 10):
+            file_path = test_dir / f"ammonite_{i:03}.tif"
+            assert file_path.exists(), f"{file_path.name} should be created"
+        for i in range(1, 2):
+            file_path = test_dir / f"sample_{i:03}.jpg"
+            assert file_path.exists(), f"{file_path.name} should be created"
 
-    # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
-    move_jpg_path = os.path.abspath('move_jpg.py')
-    test_args = [move_jpg_path, "-t", str(test_dir)]
+        # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
+        move_jpg_path = os.path.abspath('move_jpg.py')
+        test_args = [move_jpg_path, "-t", str(test_dir)]
 
-    with mock.patch.object(sys, 'argv', test_args):
-        # Mock input() to always return "y"
-        with mock.patch('builtins.input', return_value='y'):
-            with pytest.raises(SystemExit) as exc_info:
-                move_jpg.main()
-            assert exc_info.type == SystemExit
-            assert exc_info.value.code == 0
+        with mock.patch.object(sys, 'argv', test_args):
+            # Mock input() to always return "y"
+            with mock.patch('builtins.input', return_value='y'):
+                with pytest.raises(SystemExit) as exc_info:
+                    move_jpg.main()
+                assert exc_info.type == SystemExit
+                assert exc_info.value.code == 0
 
-    # Check the result of the move
-    for i in range(1, 6):
-        file_path = test_dir / f"ammonite_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
-    png_file = test_dir / "ammonite_007.png"
-    assert png_file.exists(), "PNG file should not have been moved"
-    for i in range(8, 10):
-        file_path = test_dir / f"ammonite_{i:03}.tif"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        # Check the result of the move
+        for i in range(1, 6):
+            file_path = test_dir / f"ammonite_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        png_file = test_dir / "ammonite_007.png"
+        assert png_file.exists(), "PNG file should not have been moved"
+        for i in range(8, 10):
+            file_path = test_dir / f"ammonite_{i:03}.tif"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    for i in range(1, 2):
-        file_path = test_dir / f"sample_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        for i in range(1, 2):
+            file_path = test_dir / f"sample_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    if(enb_delete_folder):
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
+    finally:
+        if(enb_delete_folder):
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
 
 def test_move_png(setup_test_files):
     """
@@ -266,40 +269,43 @@ def test_move_png(setup_test_files):
     key = 'mtime_ext'
     val = '.mts,.png'
     set_ini_value(ini_file, section, key, val)
-    # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
-    move_jpg_path = os.path.abspath('move_jpg.py')
-    test_args = [move_jpg_path, "-t", str(test_dir)]
+    
+    try:
+        # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
+        move_jpg_path = os.path.abspath('move_jpg.py')
+        test_args = [move_jpg_path, "-t", str(test_dir)]
 
-    with mock.patch.object(sys, 'argv', test_args):
-        # Mock input() to always return "y"
-        with mock.patch('builtins.input', return_value='y'):
-            with pytest.raises(SystemExit) as exc_info:
-                move_jpg.main()
-            assert exc_info.type == SystemExit
-            assert exc_info.value.code == 0
+        with mock.patch.object(sys, 'argv', test_args):
+            # Mock input() to always return "y"
+            with mock.patch('builtins.input', return_value='y'):
+                with pytest.raises(SystemExit) as exc_info:
+                    move_jpg.main()
+                assert exc_info.type == SystemExit
+                assert exc_info.value.code == 0
 
-    # Check the result of the move
-    for i in range(1, 6):
-        file_path = test_dir / f"ammonite_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
-    png_file = test_dir / "ammonite_007.png"
-    assert not png_file.exists(), "PNG file should have been moved and must not exist"
-    for i in range(8, 10):
-        file_path = test_dir / f"ammonite_{i:03}.tif"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        # Check the result of the move
+        for i in range(1, 6):
+            file_path = test_dir / f"ammonite_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        png_file = test_dir / "ammonite_007.png"
+        assert not png_file.exists(), "PNG file should have been moved and must not exist"
+        for i in range(8, 10):
+            file_path = test_dir / f"ammonite_{i:03}.tif"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    for i in range(1, 2):
-        file_path = test_dir / f"sample_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        for i in range(1, 2):
+            file_path = test_dir / f"sample_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    section = 'move_jpg'
-    key = 'mtime_ext'
-    val = '.mts'
-    set_ini_value(ini_file, section, key, val)
+    finally:
+        section = 'move_jpg'
+        key = 'mtime_ext'
+        val = '.mts'
+        set_ini_value(ini_file, section, key, val)
 
-    if(enb_delete_folder):
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
+        if(enb_delete_folder):
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
 
 def test_no_argument(setup_test_files):
     """
@@ -326,40 +332,42 @@ def test_no_argument(setup_test_files):
     val = './test_dir'
     set_ini_value(ini_file, section, key, val)
 
-    # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
-    move_jpg_path = os.path.abspath('move_jpg.py')
-    test_args = [move_jpg_path]
+    try:
+        # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
+        move_jpg_path = os.path.abspath('move_jpg.py')
+        test_args = [move_jpg_path]
 
-    with mock.patch.object(sys, 'argv', test_args):
-        # Mock input() to always return "y"
-        with mock.patch('builtins.input', return_value='y'):
-            with pytest.raises(SystemExit) as exc_info:
-                move_jpg.main()
-            assert exc_info.type == SystemExit
-            assert exc_info.value.code == 0
+        with mock.patch.object(sys, 'argv', test_args):
+            # Mock input() to always return "y"
+            with mock.patch('builtins.input', return_value='y'):
+                with pytest.raises(SystemExit) as exc_info:
+                    move_jpg.main()
+                assert exc_info.type == SystemExit
+                assert exc_info.value.code == 0
 
-    # Check the result of the move
-    for i in range(1, 6):
-        file_path = test_dir / f"ammonite_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
-    png_file = test_dir / "ammonite_007.png"
-    assert png_file.exists(), "PNG file should not have been moved"
-    for i in range(8, 10):
-        file_path = test_dir / f"ammonite_{i:03}.tif"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        # Check the result of the move
+        for i in range(1, 6):
+            file_path = test_dir / f"ammonite_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        png_file = test_dir / "ammonite_007.png"
+        assert png_file.exists(), "PNG file should not have been moved"
+        for i in range(8, 10):
+            file_path = test_dir / f"ammonite_{i:03}.tif"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    for i in range(1, 2):
-        file_path = test_dir / f"sample_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        for i in range(1, 2):
+            file_path = test_dir / f"sample_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    section = 'move_jpg'
-    key = 'tar_folder'
-    val = '.'
-    set_ini_value(ini_file, section, key, val)
+    finally:
+        section = 'move_jpg'
+        key = 'tar_folder'
+        val = '.'
+        set_ini_value(ini_file, section, key, val)
 
-    if(enb_delete_folder):
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
+        if(enb_delete_folder):
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
 
 def test_move_files_by_date_fmt_yyyymmdd(setup_test_files):
     """
@@ -374,50 +382,52 @@ def test_move_files_by_date_fmt_yyyymmdd(setup_test_files):
     val = r'%Y%m%d'
     set_ini_value(ini_file, section, key, val)
 
-    for i in range(1, 6):
-        file_path = test_dir / f"ammonite_{i:03}.jpg"
-        assert file_path.exists(), f"{file_path.name} should be created"
-    png_file = test_dir / "ammonite_007.png"
-    assert png_file.exists(), "PNG file should be created"
-    for i in range(8, 10):
-        file_path = test_dir / f"ammonite_{i:03}.tif"
-        assert file_path.exists(), f"{file_path.name} should be created"
-    for i in range(1, 2):
-        file_path = test_dir / f"sample_{i:03}.jpg"
-        assert file_path.exists(), f"{file_path.name} should be created"
+    try:
+        for i in range(1, 6):
+            file_path = test_dir / f"ammonite_{i:03}.jpg"
+            assert file_path.exists(), f"{file_path.name} should be created"
+        png_file = test_dir / "ammonite_007.png"
+        assert png_file.exists(), "PNG file should be created"
+        for i in range(8, 10):
+            file_path = test_dir / f"ammonite_{i:03}.tif"
+            assert file_path.exists(), f"{file_path.name} should be created"
+        for i in range(1, 2):
+            file_path = test_dir / f"sample_{i:03}.jpg"
+            assert file_path.exists(), f"{file_path.name} should be created"
 
-    # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
-    move_jpg_path = os.path.abspath('move_jpg.py')
-    test_args = [move_jpg_path, "-t", str(test_dir)]
+        # Since main() in move_jpg.py checks sys.argv, replace it only during testing.
+        move_jpg_path = os.path.abspath('move_jpg.py')
+        test_args = [move_jpg_path, "-t", str(test_dir)]
 
-    with mock.patch.object(sys, 'argv', test_args):
-        # Mock input() to always return "y"
-        with mock.patch('builtins.input', return_value='y'):
-            with pytest.raises(SystemExit) as exc_info:
-                move_jpg.main()
-            assert exc_info.type == SystemExit
-            assert exc_info.value.code == 0
+        with mock.patch.object(sys, 'argv', test_args):
+            # Mock input() to always return "y"
+            with mock.patch('builtins.input', return_value='y'):
+                with pytest.raises(SystemExit) as exc_info:
+                    move_jpg.main()
+                assert exc_info.type == SystemExit
+                assert exc_info.value.code == 0
 
-    # Check the result of the move
-    for i in range(1, 6):
-        file_path = test_dir / f"ammonite_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
-    png_file = test_dir / "ammonite_007.png"
-    assert png_file.exists(), "PNG file should not have been moved"
-    for i in range(8, 10):
-        file_path = test_dir / f"ammonite_{i:03}.tif"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        # Check the result of the move
+        for i in range(1, 6):
+            file_path = test_dir / f"ammonite_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        png_file = test_dir / "ammonite_007.png"
+        assert png_file.exists(), "PNG file should not have been moved"
+        for i in range(8, 10):
+            file_path = test_dir / f"ammonite_{i:03}.tif"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    for i in range(1, 2):
-        file_path = test_dir / f"sample_{i:03}.jpg"
-        assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
+        for i in range(1, 2):
+            file_path = test_dir / f"sample_{i:03}.jpg"
+            assert not file_path.exists(), f"{file_path.name} should have been moved and must not exist"
 
-    section = 'move_jpg'
-    key = 'date_format'
-    val = '%Y_%m_%d'
-    set_ini_value(ini_file, section, key, val)
+    finally:
+        section = 'move_jpg'
+        key = 'date_format'
+        val = '%Y_%m_%d'
+        set_ini_value(ini_file, section, key, val)
 
-    if(enb_delete_folder):
-        if test_dir.exists():
-            shutil.rmtree(test_dir)
+        if(enb_delete_folder):
+            if test_dir.exists():
+                shutil.rmtree(test_dir)
 
