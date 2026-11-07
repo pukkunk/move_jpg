@@ -197,8 +197,10 @@ def main(args=None) -> None:
     print(f"<<  target  folder:{tar_folder}  >>")
     current_path = os.getcwd()  # Preserve original current directory information
     os.chdir(tar_folder)        # Change to the target directory
-    move_picture(files, dict_tar_ext, url_ffmpeg, date_format)
-    os.chdir(current_path)      # Change to the original current directory
+    try:
+        move_picture(files, dict_tar_ext, url_ffmpeg, date_format)
+    finally:
+        os.chdir(current_path)      # Change to the original current directory
     sys.exit(OK_VAL)
 
 def move_picture(files: List[str], dict_tar_ext: ExtDict, url_ffmpeg: str, date_format: str):
@@ -386,9 +388,10 @@ def file_get_mtime(filename: str) -> Dict[str, Optional[str]]:
 def add_tardir_envpath(dirname: str) -> None :
     # Get the current PATH environment variable
     current_path = os.environ.get("PATH", "")
+    path_list = current_path.split(os.pathsep)
 
     # Add SCR_FOLDER to the beginning of the environment variable PATH.
-    if SCR_FOLDER not in current_path:
+    if dirname not in path_list:
         os.environ["PATH"] = dirname + os.pathsep + current_path
 
 ## @fn          is_ffmpeg()
@@ -568,7 +571,11 @@ def movie_get_date(filename: str, url: str) -> Dict[str, Optional[str]] :
             print("ffprobe setup failed.")
             return inf
 
-    video_info = ffmpeg.probe(filename)
+    ffprobe_path = shutil.which("ffprobe")
+    if ffprobe_path:
+        ffprobe_path = os.path.abspath(ffprobe_path)
+    video_info = ffmpeg.probe(filename, cmd=ffprobe_path)
+
     move_format = video_info.get('format')
     tags = move_format.get('tags')
     # tags is not None & Checks if the 'creation_time' key exists.
