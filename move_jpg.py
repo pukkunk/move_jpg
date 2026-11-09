@@ -131,12 +131,20 @@ def main(args=None) -> None:
     str_tar_folder = args.tar_folder
     encoding = args.encoding
 
+    # -t が指定されている場合、絶対パスに変換する
+    if str_tar_folder is not None:
+        str_tar_folder = get_absolute_path(str_tar_folder, BASE_FOLDER)
+
+        # 指定フォルダの存在確認
+        if not os.path.isdir(str_tar_folder):
+            die_print(f"Error detect. There is not folder. folder={str_tar_folder}")
+
     opt:Dict[str, Any] = {}
     opt['picture_ext'] = lst_picture_ext
     opt['tar_folder'] = str_tar_folder
 
     # Create setting file name information
-    ini_file = get_inifile()
+    ini_file = get_inifile(str_tar_folder)
     section = os.path.splitext(os.path.basename(SCR_PATH))[0]
 
     default_ini = get_ini_dict_val(section)
@@ -174,8 +182,9 @@ def main(args=None) -> None:
         die_print(msg)
 
     tar_folder = opt['tar_folder']
-    if not os.path.isabs(tar_folder):
-        tar_folder = os.path.abspath(os.path.join(SCR_FOLDER, tar_folder))
+
+    # 相対パスをカレントフォルダ基準で絶対パスに変換
+    tar_folder = get_absolute_path(tar_folder, BASE_FOLDER)
     if not os.path.isdir(tar_folder):
         msg = f"Error detect. There is not folder. folder={tar_folder}"
         die_print(msg)
@@ -743,12 +752,26 @@ def get_ini_dict_val(section: str) -> ini.IniDict:
 #  @brief      Gets the ini file name. Gets the script file name + the file name with the ".ini" extension.
 #  @param[in]  None            : 
 #  @retval     ini_file        : ini file name [type str]
-def get_inifile() -> str:
-    """Gets the basename of the running script and returns it with the .ini extension."""
-    script_name = os.path.basename(sys.argv[0])
+def get_inifile(tar_folder: Optional[str] = None) -> str:
+    """Gets the ini file path."""
+
+    script_name = os.path.basename(SCR_PATH)
     base_name, _ = os.path.splitext(script_name)
     ini_name = base_name + ".ini"
-    return ini_name
+
+    # -t指定あり：指定フォルダ
+    # -t指定なし：カレントフォルダ
+    ini_folder = BASE_FOLDER if tar_folder is None else tar_folder
+
+    return os.path.join(ini_folder, ini_name)
+
+def get_absolute_path(path: str, base_folder: str) -> str:
+    """Convert a relative path to an absolute path."""
+
+    if not os.path.isabs(path):
+        path = os.path.join(base_folder, path)
+
+    return os.path.abspath(path)
 
 ##
 # @brief        After displaying the message string, execute sys.exit(1).
@@ -759,9 +782,12 @@ def die_print(msg: str) -> None:
     sys.exit(NG_VAL)
 
 def init_paths():
-    global SCR_PATH, SCR_FOLDER
+    global SCR_PATH, SCR_FOLDER, BASE_FOLDER
+
     SCR_PATH = os.path.abspath(sys.argv[0])
     SCR_FOLDER = os.path.dirname(SCR_PATH)
+
+    BASE_FOLDER = os.getcwd()
 
 PathLike = Union[str, os.PathLike]
 
