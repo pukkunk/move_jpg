@@ -85,7 +85,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 uv --version
 ```
 
-その他のOSやインストール方法については、uv公式インストールガイドを参照してください。
+その他のOSやインストール方法については、[uv公式インストールガイド](https://docs.astral.sh/uv/getting-started/installation/)を参照してください。
 
 #### move_jpgのインストール
 
