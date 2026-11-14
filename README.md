@@ -118,23 +118,23 @@ If the PATH setting is still not updated, add the following directory to the Win
 %USERPROFILE%\.local\bin
 ```
 
-**Note:** `move_jpg.exe` is not a standalone executable that includes the Python runtime. It is a command launcher that starts the application using the Python environment managed by uv.
+**Note:** `move_jpg`(exe file) is not a standalone executable that includes the Python runtime. It is a command launcher that starts the application using the Python environment managed by uv.
 
 Run the application:
 
 ```cmd
-move_jpg.exe
+move_jpg
 ```
 
 Check the version:
 
 ```cmd
-move_jpg.exe --version
+move_jpg --version
 ```
 
 **Additional information**
 
-The `move_jpg.exe` created by `uv tool install .` is not a standalone executable bundled with Python, such as one created by PyInstaller.
+The `move_jpg` created by `uv tool install .` is not a standalone executable bundled with Python, such as one created by PyInstaller.
 
 It is a command launcher that starts the Python application installed in an isolated environment managed by uv. The application runs using that environment.
 
@@ -151,7 +151,7 @@ python move_jpg.py
 Or:
 
 ```cmd
-move_jpg.exe
+move_jpg
 ```
 
 ### Specifying the target folder
@@ -159,7 +159,7 @@ move_jpg.exe
 You can specify the target folder using the `-t` option:
 
 ```cmd
-move_jpg.exe -t D:\PHOTO
+move_jpg -t D:\PHOTO
 ```
 
 The same option can be used when running the regular Python script:
@@ -203,7 +203,7 @@ tar_folder = .
 | date_format | Date folder format |
 | tar_folder | Target folder |
 
-If `ffprobe.exe` does not exist, it is downloaded from the URL specified by `url_ffmpeg`.
+If `ffprobe` does not exist, it is downloaded from the URL specified by `url_ffmpeg`.
 
 ### INI file location
 

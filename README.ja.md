@@ -129,23 +129,23 @@ uv tool update-shell
 %USERPROFILE%\.local\bin
 ```
 
-※ move_jpg.exe は、Python本体を含む単独実行ファイルではありません。uvが管理するPython環境でアプリケーションを起動するためのコマンドランチャーです。
+※ move_jpg(exeファイル) は、Python本体を含む単独実行ファイルではありません。uvが管理するPython環境でアプリケーションを起動するためのコマンドランチャーです。
 
 実行方法：
 
 ```cmd
-move_jpg.exe
+move_jpg
 ```
 
 バージョン確認：
 
 ```cmd
-move_jpg.exe --version
+move_jpg --version
 ```
 
 **補足**
 
-`uv tool install .` で作成される `move_jpg.exe` は、PyInstallerなどでPython本体を含めて単独実行可能なファイルにしたものではありません。
+`uv tool install .` で作成される `move_jpg`(exeファイル) は、PyInstallerなどでPython本体を含めて単独実行可能なファイルにしたものではありません。
 
 uvが専用環境にインストールしたPythonプログラムを起動するためのコマンドランチャーです。実行にはuvが管理するPython環境を使用します。
 
@@ -162,7 +162,7 @@ python move_jpg.py
 または
 
 ```cmd
-move_jpg.exe
+move_jpg
 ```
 
 ### 対象フォルダを指定する場合
@@ -170,7 +170,7 @@ move_jpg.exe
 `-t` オプションで対象フォルダを指定できます。
 
 ```cmd
-move_jpg.exe -t D:\PHOTO
+move_jpg -t D:\PHOTO
 ```
 
 通常のPython実行でも同じオプションを使用できます。
@@ -214,7 +214,7 @@ tar_folder = .
 | date_format | 日付フォルダのフォーマット |
 | tar_folder | 対象フォルダ |
 
-`ffprobe.exe` が存在しない場合、`url_ffmpeg` に指定したURLから取得します。
+`ffprob` が存在しない場合、`url_ffmpeg` に指定したURLから取得します。
 
 ### INIファイルの配置場所
 
